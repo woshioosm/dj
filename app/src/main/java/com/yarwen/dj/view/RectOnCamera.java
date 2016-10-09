@@ -1,8 +1,11 @@
 package com.yarwen.dj.view;
 
 import android.content.Context;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Color;
+import android.graphics.Matrix;
 import android.graphics.Paint;
 import android.graphics.Point;
 import android.graphics.RectF;
@@ -12,6 +15,10 @@ import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.WindowManager;
+
+import com.yarwen.dj.R;
+
+import java.io.File;
 
 /**
  * Created by PC19 on 2016/4/7.
@@ -66,12 +73,32 @@ public class RectOnCamera extends View {
     @Override
     protected void onDraw(Canvas canvas) {
         super.onDraw(canvas);
-        mPaint.setColor(Color.RED);
-        canvas.drawRect(mRectF, mPaint);
-        mPaint.setColor(Color.WHITE);
-        Log.i(TAG, "onDraw");
-        canvas.drawCircle(centerPoint.x,centerPoint.y, radio,mPaint);// 外圆
-        canvas.drawCircle(centerPoint.x,centerPoint.y, radio - 20,mPaint); // 内圆
+        Bitmap bitmap = null;
+        try
+        {
+            String pathString = "/sdcard/myImage/1476028673212.jpg";
+            File file = new File(pathString);
+            if(file.exists())
+            {
+                bitmap = BitmapFactory.decodeFile(pathString);
+
+
+            }
+        } catch (Exception e)
+        {
+            // TODO: handle exception
+        }
+        Matrix matrix = new Matrix();
+        canvas.translate(100,100);
+        matrix.postRotate(45);
+        mPaint.setAlpha(0x40);
+        canvas.drawBitmap(bitmap,matrix,mPaint);
+//        mPaint.setColor(Color.RED);
+//        canvas.drawRect(mRectF, mPaint);
+//        mPaint.setColor(Color.WHITE);
+//        Log.i(TAG, "onDraw");
+//        canvas.drawCircle(centerPoint.x,centerPoint.y, radio,mPaint);// 外圆
+//        canvas.drawCircle(centerPoint.x,centerPoint.y, radio - 20,mPaint); // 内圆
     }
 
     @Override

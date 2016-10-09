@@ -125,16 +125,6 @@ public class CameraSurfaceView extends SurfaceView implements SurfaceHolder.Call
         }
     };
 
-    // 获得没有压缩过的图片数据
-    private Camera.PictureCallback raw = new Camera.PictureCallback() {
-
-        @Override
-        public void onPictureTaken(byte[] data, Camera Camera) {
-            Log.i(TAG, "raw");
-
-        }
-    };
-
     //创建jpeg图片回调数据对象
     private Camera.PictureCallback jpeg = new Camera.PictureCallback() {
 
@@ -165,7 +155,7 @@ public class CameraSurfaceView extends SurfaceView implements SurfaceHolder.Call
                     bm.recycle();// 回收bitmap空间
                     mCamera.stopPreview();// 关闭预览
                     mCamera.startPreview();// 开启预览
-                } catch (IOException e) {
+                } catch (Exception e) {
                     e.printStackTrace();
                 }
             }
@@ -246,6 +236,9 @@ public class CameraSurfaceView extends SurfaceView implements SurfaceHolder.Call
         Log.i(TAG, "screenRatio=" + screenRatio);
         Camera.Size result = null;
         for (Camera.Size size : pictureSizeList) {
+            if(size.height>1024){
+                continue;
+            }
             float currentRatio = ((float) size.width) / size.height;
             if (currentRatio - screenRatio == 0) {
                 result = size;
@@ -255,6 +248,7 @@ public class CameraSurfaceView extends SurfaceView implements SurfaceHolder.Call
 
         if (null == result) {
             for (Camera.Size size : pictureSizeList) {
+
                 float curRatio = ((float) size.width) / size.height;
                 if (curRatio == 4f / 3) {// 默认w:h = 4:3
                     result = size;

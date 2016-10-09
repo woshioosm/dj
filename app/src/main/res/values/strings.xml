@@ -1,4 +1,7 @@
 <resources>
     <string name="app_name">DJ</string>
     <string name="title_activity_app2">app2</string>
+    <string name="picture">app2</string>
+    <string name="description_info">app2</string>
+
 </resources>
