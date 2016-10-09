@@ -2,6 +2,7 @@ package com.yarwen.dj;
 
 import android.app.Activity;
 import android.content.Intent;
+import android.content.res.Configuration;
 import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.net.Uri;
@@ -11,6 +12,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.text.format.DateFormat;
 import android.util.Log;
+import android.view.OrientationEventListener;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
@@ -27,20 +29,25 @@ import static android.content.ClipData.newIntent;
 import static android.provider.MediaStore.*;
 
 public class MainActivity extends AppCompatActivity {
+    private OrientationEventListener mOrientationListener; // 屏幕方向改变监听器
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-
         Button btnOpen=(Button)this.findViewById(R.id.btnOpen);
         btnOpen.setOnClickListener(new View.OnClickListener(){
             public void onClick(View v) {
                 //得到新打开Activity关闭后返回的数据
                 //第二个参数为请求码，可以根据业务需求自己编号
-                Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+//                Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+//
+//                startActivityForResult(intent, 1);
 
-                startActivityForResult(intent, 1);
+                Intent intent = new Intent(MainActivity.this,CameraActivity.class);
+
+                startActivity(intent);
             }
 
 
@@ -94,4 +101,6 @@ public class MainActivity extends AppCompatActivity {
 
         }
     }
+
+
 }
