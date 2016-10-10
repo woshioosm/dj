@@ -8,6 +8,7 @@ import android.graphics.Color;
 import android.graphics.Matrix;
 import android.graphics.Paint;
 import android.graphics.Point;
+import android.graphics.Rect;
 import android.graphics.RectF;
 import android.util.AttributeSet;
 import android.util.DisplayMetrics;
@@ -62,37 +63,51 @@ public class RectOnCamera extends View {
         mPaint.setColor(Color.RED);
         mPaint.setStrokeWidth(5);
         mPaint.setStyle(Paint.Style.STROKE);// 空心
-        int marginLeft = (int) (mScreenWidth*0.15);
+        int marginLeft = (int) (mScreenWidth * 0.15);
         int marginTop = (int) (mScreenHeight * 0.25);
         mRectF = new RectF(marginLeft, marginTop, mScreenWidth - marginLeft, mScreenHeight - marginTop);
 
-        centerPoint = new Point(mScreenWidth/2, mScreenHeight/2);
-        radio = (int) (mScreenWidth*0.1);
+        centerPoint = new Point(mScreenWidth / 2, mScreenHeight / 2);
+        radio = (int) (mScreenWidth * 0.1);
     }
 
     @Override
     protected void onDraw(Canvas canvas) {
         super.onDraw(canvas);
         Bitmap bitmap = null;
-        try
-        {
-            String pathString = "/sdcard/myImage/1476028673212.jpg";
+        try {
+            String pathString = "/sdcard/myImage/1476088265546.jpg";
             File file = new File(pathString);
-            if(file.exists())
-            {
+            if (file.exists()) {
                 bitmap = BitmapFactory.decodeFile(pathString);
 
 
             }
-        } catch (Exception e)
-        {
+
+            int width = bitmap.getWidth();
+            int height = bitmap.getHeight();
+
+            int newWidht = canvas.getWidth();
+            int newHeight = canvas.getHeight();
+
+            Matrix matrix = new Matrix();
+//        matrix.postScale(canvas.getHeight()/width,canvas.getWidth()/height);
+            matrix.postRotate(90);
+
+
+            Bitmap resizedBitmap = Bitmap.createBitmap(bitmap, 0, 0, width,
+                    height, matrix, true);
+
+
+//        canvas.translate(canvas.getWidth(),0);
+            Rect mSrcRect = new Rect(0, 0, width, height);
+            Rect mDestRect = new Rect(0, 0, newWidht, newHeight);
+            mPaint.setAlpha(0x90);
+            canvas.drawBitmap(resizedBitmap, mSrcRect, mDestRect, mPaint);
+
+        } catch (Exception e) {
             // TODO: handle exception
         }
-        Matrix matrix = new Matrix();
-        canvas.translate(100,100);
-        matrix.postRotate(45);
-        mPaint.setAlpha(0x40);
-        canvas.drawBitmap(bitmap,matrix,mPaint);
 //        mPaint.setColor(Color.RED);
 //        canvas.drawRect(mRectF, mPaint);
 //        mPaint.setColor(Color.WHITE);
@@ -103,7 +118,7 @@ public class RectOnCamera extends View {
 
     @Override
     public boolean onTouchEvent(MotionEvent event) {
-        switch (event.getAction()){
+        switch (event.getAction()) {
             case MotionEvent.ACTION_DOWN:
             case MotionEvent.ACTION_MOVE:
             case MotionEvent.ACTION_UP:
@@ -111,7 +126,7 @@ public class RectOnCamera extends View {
                 int y = (int) event.getY();
                 centerPoint = new Point(x, y);
                 invalidate();
-                if (mIAutoFocus != null){
+                if (mIAutoFocus != null) {
                     mIAutoFocus.autoFocus();
                 }
                 return true;
@@ -121,8 +136,10 @@ public class RectOnCamera extends View {
 
     private IAutoFocus mIAutoFocus;
 
-    /** 聚焦的回调接口 */
-    public interface  IAutoFocus{
+    /**
+     * 聚焦的回调接口
+     */
+    public interface IAutoFocus {
         void autoFocus();
     }
 

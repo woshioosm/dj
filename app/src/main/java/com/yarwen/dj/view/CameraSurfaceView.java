@@ -34,16 +34,56 @@ import java.util.List;
 public class CameraSurfaceView extends SurfaceView implements SurfaceHolder.Callback, Camera.AutoFocusCallback {
 
     private static final String TAG = "CameraSurfaceView";
-
+    SensorManager mSensorManager;
     private Context mContext;
     private SurfaceHolder holder;
     private Camera mCamera;
-
     private int mScreenWidth;
     private int mScreenHeight;
+    // 拍照瞬间调用
+    private Camera.ShutterCallback shutter = new Camera.ShutterCallback() {
+        @Override
+        public void onShutter() {
+            Log.i(TAG, "shutter");
+        }
+    };
+    //创建jpeg图片回调数据对象
+    private Camera.PictureCallback jpeg = new Camera.PictureCallback() {
 
-    SensorManager mSensorManager;
+        @Override
+        public void onPictureTaken(byte[] data, Camera Camera) {
+            FileOutputStream bos = null;
+            Bitmap bm = null;
+            try {
+                // 获得图片
+                bm = BitmapFactory.decodeByteArray(data, 0, data.length);
+                if (Environment.getExternalStorageState().equals(Environment.MEDIA_MOUNTED)) {
+                    Log.i(TAG, "Environment.getExternalStorageDirectory()=" + Environment.getExternalStorageDirectory());
+                    String filePath = "/sdcard/myImage/" + System.currentTimeMillis() + ".jpg";//照片保存路径
+                    File file = new File("/sdcard/myImage/");
+                    file.mkdirs();// 创建文件夹
 
+                    bos = new FileOutputStream(filePath);
+                    bm.compress(Bitmap.CompressFormat.JPEG, 100, bos);//将图片压缩到流中
+                } else {
+                    Toast.makeText(mContext, "没有检测到内存卡", Toast.LENGTH_SHORT).show();
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            } finally {
+                try {
+                    bos.flush();//输出
+                    bos.close();//关闭
+                    bm.recycle();// 回收bitmap空间
+                    mCamera.stopPreview();// 关闭预览
+                    mCamera.startPreview();// 开启预览
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+
+        }
+    };
 
     public CameraSurfaceView(Context context) {
         this(context, null);
@@ -57,7 +97,7 @@ public class CameraSurfaceView extends SurfaceView implements SurfaceHolder.Call
         super(context, attrs, defStyleAttr);
         mContext = context;
         mSensorManager = (SensorManager) context.getSystemService(Context.SENSOR_SERVICE);
-    
+
 
         getScreenMetrix(context);
         initView();
@@ -89,7 +129,7 @@ public class CameraSurfaceView extends SurfaceView implements SurfaceHolder.Call
                 e.printStackTrace();
             }
         }
-        
+
     }
 
     @Override
@@ -98,7 +138,7 @@ public class CameraSurfaceView extends SurfaceView implements SurfaceHolder.Call
         //设置参数并开始预览
         setCameraParams(mCamera, mScreenWidth, mScreenHeight);
         mCamera.startPreview();
-        
+
     }
 
     @Override
@@ -109,69 +149,23 @@ public class CameraSurfaceView extends SurfaceView implements SurfaceHolder.Call
         mCamera = null;
         holder = null;
     }
-    
+
     @Override
     public void onAutoFocus(boolean success, Camera Camera) {
         if (success) {
-            Log.i(TAG, "onAutoFocus success="+success);
+            Log.i(TAG, "onAutoFocus success=" + success);
         }
     }
-
-    // 拍照瞬间调用
-    private Camera.ShutterCallback shutter = new Camera.ShutterCallback() {
-        @Override
-        public void onShutter() {
-            Log.i(TAG,"shutter");
-        }
-    };
-
-    //创建jpeg图片回调数据对象
-    private Camera.PictureCallback jpeg = new Camera.PictureCallback() {
-
-        @Override
-        public void onPictureTaken(byte[] data, Camera Camera) {
-            FileOutputStream bos = null;
-            Bitmap bm = null;
-            try {
-            	// 获得图片
-                bm = BitmapFactory.decodeByteArray(data, 0, data.length);
-                if (Environment.getExternalStorageState().equals(Environment.MEDIA_MOUNTED)) {
-                    Log.i(TAG, "Environment.getExternalStorageDirectory()="+Environment.getExternalStorageDirectory());
-                    String filePath = "/sdcard/myImage/"+System.currentTimeMillis()+".jpg";//照片保存路径
-                    File file = new File("/sdcard/myImage/");
-                    file.mkdirs();// 创建文件夹
-
-                    bos = new  FileOutputStream(filePath);
-                    bm.compress(Bitmap.CompressFormat.JPEG, 100, bos);//将图片压缩到流中
-                }else{
-                    Toast.makeText(mContext,"没有检测到内存卡", Toast.LENGTH_SHORT).show();
-                }
-            } catch (Exception e) {
-                e.printStackTrace();
-            } finally {
-                try {
-                    bos.flush();//输出
-                    bos.close();//关闭
-                    bm.recycle();// 回收bitmap空间
-                    mCamera.stopPreview();// 关闭预览
-                    mCamera.startPreview();// 开启预览
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-            }
-
-        }
-    };
 
     public Camera getCamera() {
         return mCamera;
     }
 
-    public void setAutoFocus(){
+    public void setAutoFocus() {
         mCamera.autoFocus(this);
     }
 
-    public void takePicture(){
+    public void takePicture() {
         //设置参数,并拍照
         setCameraParams(mCamera, mScreenWidth, mScreenHeight);
         // 当调用camera.takePiture方法后，camera关闭了预览，这时需要调用startPreview()来重新开启预览
@@ -179,7 +173,7 @@ public class CameraSurfaceView extends SurfaceView implements SurfaceHolder.Call
     }
 
     private void setCameraParams(Camera camera, int width, int height) {
-        Log.i(TAG,"setCameraParams  width="+width+"  height="+height);
+        Log.i(TAG, "setCameraParams  width=" + width + "  height=" + height);
         Camera.Parameters parameters = mCamera.getParameters();
         // 获取摄像头支持的PictureSize列表
         List<Camera.Size> pictureSizeList = parameters.getSupportedPictureSizes();
@@ -193,15 +187,15 @@ public class CameraSurfaceView extends SurfaceView implements SurfaceHolder.Call
             picSize = parameters.getPictureSize();
         }
         Log.i(TAG, "picSize.width=" + picSize.width + "  picSize.height=" + picSize.height);
-         // 根据选出的PictureSize重新设置SurfaceView大小
+        // 根据选出的PictureSize重新设置SurfaceView大小
         float w = picSize.width;
         float h = picSize.height;
-        parameters.setPictureSize(picSize.width,picSize.height);
-       // setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_NOSENSOR);
+        parameters.setPictureSize(picSize.width, picSize.height);
+        // setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_NOSENSOR);
 //        parameters.set("orientation", "portrait");
 //        parameters.set("rotation", 90);
 
-        this.setLayoutParams(new FrameLayout.LayoutParams((int) (height*(h/w)), height));
+        this.setLayoutParams(new FrameLayout.LayoutParams((int) (height * (h / w)), height));
 
         // 获取摄像头支持的PreviewSize列表
         List<Camera.Size> previewSizeList = parameters.getSupportedPreviewSizes();
@@ -230,13 +224,13 @@ public class CameraSurfaceView extends SurfaceView implements SurfaceHolder.Call
      * 从列表中选取合适的分辨率
      * 默认w:h = 4:3
      * <p>注意：这里的w对应屏幕的height
-     *            h对应屏幕的width<p/>
+     * h对应屏幕的width<p/>
      */
     private Camera.Size getProperSize(List<Camera.Size> pictureSizeList, float screenRatio) {
         Log.i(TAG, "screenRatio=" + screenRatio);
         Camera.Size result = null;
         for (Camera.Size size : pictureSizeList) {
-            if(size.height>1024){
+            if (size.height > 1024) {
                 continue;
             }
             float currentRatio = ((float) size.width) / size.height;
@@ -259,7 +253,6 @@ public class CameraSurfaceView extends SurfaceView implements SurfaceHolder.Call
 
         return result;
     }
-
 
 
 }
