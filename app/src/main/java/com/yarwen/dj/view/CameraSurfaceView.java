@@ -8,6 +8,8 @@ import android.graphics.BitmapFactory;
 import android.graphics.drawable.GradientDrawable;
 import android.hardware.Camera;
 import android.hardware.Sensor;
+import android.hardware.SensorEvent;
+import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
 import android.os.Environment;
 import android.util.AttributeSet;
@@ -31,15 +33,19 @@ import java.util.List;
 /**
  * Created by dyk on 2016/4/6.
  */
-public class CameraSurfaceView extends SurfaceView implements SurfaceHolder.Callback, Camera.AutoFocusCallback {
+public class CameraSurfaceView extends SurfaceView implements SurfaceHolder.Callback, Camera.AutoFocusCallback ,SensorEventListener {
 
     private static final String TAG = "CameraSurfaceView";
-    SensorManager mSensorManager;
+
     private Context mContext;
     private SurfaceHolder holder;
     private Camera mCamera;
     private int mScreenWidth;
     private int mScreenHeight;
+
+    private SensorManager sensorManager = null;
+    private Sensor gyroSensor = null;
+
     // 拍照瞬间调用
     private Camera.ShutterCallback shutter = new Camera.ShutterCallback() {
         @Override
@@ -96,8 +102,10 @@ public class CameraSurfaceView extends SurfaceView implements SurfaceHolder.Call
     public CameraSurfaceView(Context context, AttributeSet attrs, int defStyleAttr) {
         super(context, attrs, defStyleAttr);
         mContext = context;
-        mSensorManager = (SensorManager) context.getSystemService(Context.SENSOR_SERVICE);
-
+        sensorManager = (SensorManager) context.getSystemService(Context.SENSOR_SERVICE);
+        gyroSensor = sensorManager.getDefaultSensor(Sensor.TYPE_ORIENTATION);
+        sensorManager.registerListener(this, gyroSensor,
+                SensorManager.SENSOR_DELAY_NORMAL); //为传感器注册监听器
 
         getScreenMetrix(context);
         initView();
@@ -255,4 +263,17 @@ public class CameraSurfaceView extends SurfaceView implements SurfaceHolder.Call
     }
 
 
+
+
+    @Override
+    public void onSensorChanged(SensorEvent event) {
+        float x = event.values[0];
+        float y = event.values[1];
+        float z = event.values[2];
+    }
+
+    @Override
+    public void onAccuracyChanged(Sensor sensor, int accuracy) {
+
+    }
 }

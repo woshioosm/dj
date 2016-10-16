@@ -1,10 +1,15 @@
 package com.yarwen.dj;
 
 import android.app.Activity;
+import android.content.Context;
 import android.content.Intent;
 import android.content.res.Configuration;
 import android.database.Cursor;
 import android.graphics.Bitmap;
+import android.hardware.Sensor;
+import android.hardware.SensorEvent;
+import android.hardware.SensorEventListener;
+import android.hardware.SensorManager;
 import android.net.Uri;
 import android.os.Environment;
 import android.provider.MediaStore;
@@ -16,6 +21,7 @@ import android.view.OrientationEventListener;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import java.io.File;
@@ -28,15 +34,23 @@ import java.util.Locale;
 import static android.content.ClipData.newIntent;
 import static android.provider.MediaStore.*;
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends AppCompatActivity  implements SensorEventListener {
     private OrientationEventListener mOrientationListener; // 屏幕方向改变监听器
 
+    private SensorManager sensorManager = null;
+    private Sensor gyroSensor = null;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         Button btnOpen=(Button)this.findViewById(R.id.btnOpen);
+
+        sensorManager = (SensorManager) this.getSystemService(Context.SENSOR_SERVICE);
+        gyroSensor = sensorManager.getDefaultSensor(Sensor.TYPE_ORIENTATION);
+        sensorManager.registerListener(this, gyroSensor,
+                SensorManager.SENSOR_DELAY_NORMAL); //为传感器注册监听器
+
         btnOpen.setOnClickListener(new View.OnClickListener(){
             public void onClick(View v) {
                 //得到新打开Activity关闭后返回的数据
@@ -103,4 +117,18 @@ public class MainActivity extends AppCompatActivity {
     }
 
 
+    @Override
+    public void onSensorChanged(SensorEvent event) {
+        float x = event.values[0];
+        float y = event.values[1];
+        float z = event.values[2];
+        ((TextView)findViewById(R.id.textView)).setText("x:" + x);
+        ((TextView)findViewById(R.id.textView2)).setText("y:" + y);
+        ((TextView)findViewById(R.id.textView3)).setText("z:" + z);
+    }
+
+    @Override
+    public void onAccuracyChanged(Sensor sensor, int accuracy) {
+
+    }
 }
